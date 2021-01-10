@@ -16,6 +16,7 @@ use uuid::Uuid;
 /// An engine represents an abstraction on top of the OS
 /// that allows you to run jobs associated with a username and a unique id
 /// while capturing and streaming output.
+#[derive(Debug, Default)]
 pub struct Engine {
     remotes: HashMap<UniqueJobId, Mutex<Remote>>,
     outputs: HashMap<UniqueJobId, Arc<Mutex<Output>>>,
@@ -58,7 +59,7 @@ impl Engine {
         let mut remote = self
             .remotes
             .get(id)
-            .ok_or(anyhow!("job does not exist"))?
+            .ok_or_else(|| anyhow!("job does not exist"))?
             .lock()
             .unwrap();
 
@@ -71,7 +72,7 @@ impl Engine {
         let mut output = self
             .outputs
             .get(id)
-            .ok_or(anyhow!("job does not exist"))?
+            .ok_or_else(|| anyhow!("job does not exist"))?
             .lock()
             .unwrap();
 
@@ -83,7 +84,7 @@ impl Engine {
         let mut output = self
             .outputs
             .get(id)
-            .ok_or(anyhow!("job does not exist"))?
+            .ok_or_else(|| anyhow!("job does not exist"))?
             .lock()
             .unwrap();
 

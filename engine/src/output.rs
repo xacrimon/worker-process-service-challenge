@@ -11,6 +11,7 @@ pub enum OutputEvent {
 
 /// The `Output` struct handles storing a log of previous events and continously broadcasting
 /// past and new events to any listeners.
+#[derive(Debug)]
 pub struct Output {
     log: Vec<OutputEvent>,
     senders: Vec<UnboundedSender<OutputEvent>>,

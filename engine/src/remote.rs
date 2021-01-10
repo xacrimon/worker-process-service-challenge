@@ -16,6 +16,7 @@ const READ_BUFFER_SIZE: usize = 1024;
 
 /// A remote is a sort of overwatch that monitors a process.
 /// It manages starting, stopping and streaming stdout/stderr + exit as events to an `Output`.
+#[derive(Debug)]
 pub struct Remote {
     /// The RAII handle to the child process.
     child: Option<Child>,
@@ -71,19 +72,19 @@ impl Remote {
         let mut child = self
             .child
             .take()
-            .ok_or(anyhow!("events processor already spawned"))?;
+            .ok_or_else(|| anyhow!("events processor already spawned"))?;
 
         // Nab the RAII stdout handle from the remote. If it's taken, this method has already called.
         let mut stdout = child
             .stdout
             .take()
-            .ok_or(anyhow!("could not attach stdout"))?;
+            .ok_or_else(|| anyhow!("could not attach stdout"))?;
 
         // Nab the RAII stderr handle from the remote. If it's taken, this method has already called.
         let mut stderr = child
             .stderr
             .take()
-            .ok_or(anyhow!("could not attach stderr"))?;
+            .ok_or_else(|| anyhow!("could not attach stderr"))?;
 
         // Spawns a task that will stream events from the stdout unix pipe to the output channel.
         task::spawn_blocking(move || {
