@@ -2,7 +2,7 @@ use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 
 /// An `OutputEvent` is any output from a process. Partial or not.
 /// A stream of these should be able to be reconstructed into a full output.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum OutputEvent {
     Stdout(Vec<u8>),
     Stderr(Vec<u8>),
@@ -52,5 +52,37 @@ impl Output {
 
         self.senders.push(tx);
         rx
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Output, OutputEvent};
+
+    #[tokio::test]
+    async fn publish_receive() {
+        let mut output = Output::new();
+        let mut rx = output.tail();
+        let event = OutputEvent::Exit(5);
+        output.publish(event.clone());
+        assert_eq!(rx.recv().await, Some(event));
+    }
+
+    #[tokio::test]
+    async fn no_publish_receive() {
+        let mut output = Output::new();
+        let event = OutputEvent::Exit(5);
+        output.publish(event);
+        let mut rx = output.tail();
+        assert_eq!(rx.try_recv().ok(), None);
+    }
+
+    #[tokio::test]
+    async fn publish_receive_past() {
+        let mut output = Output::new();
+        let event = OutputEvent::Exit(5);
+        output.publish(event.clone());
+        let mut rx = output.tail_from_start();
+        assert_eq!(rx.recv().await, Some(event));
     }
 }
