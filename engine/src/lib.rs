@@ -1,4 +1,5 @@
 mod output;
+mod remote;
 
 #[cfg(test)]
 mod tests {
