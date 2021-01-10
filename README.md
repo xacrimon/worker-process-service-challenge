@@ -12,3 +12,8 @@ should they conflict due to it being newer but is not provided in a written book
 The project also enforces automatic linting with [clippy](https://github.com/rust-lang/rust-clippy) and will fail on any warning.
 
 CI is configured to fail if the code is not properly formatted or any lints trigger.
+
+## Errors
+
+In a production grade product, errors would ideally be handled by handwriting enums and serializing that to error
+codes over gRPC. Due to time and code size I've opted to simply use human-readable text errors instead.
