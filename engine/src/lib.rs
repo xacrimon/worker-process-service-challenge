@@ -67,8 +67,12 @@ impl Engine {
         Ok(())
     }
 
-    /// Creates an event stream that receives all future output events from a job.
-    pub fn tail_log(&self, id: &UniqueJobId) -> Result<UnboundedReceiver<OutputEvent>> {
+    /// Creates an event stream that receives all future output events from a job and optionally those of the past.
+    pub fn tail_log(
+        &self,
+        id: &UniqueJobId,
+        from_start: bool,
+    ) -> Result<UnboundedReceiver<OutputEvent>> {
         let mut output = self
             .outputs
             .get(id)
@@ -76,19 +80,7 @@ impl Engine {
             .lock()
             .unwrap();
 
-        Ok(output.tail())
-    }
-
-    /// Creates an event stream that receives all past and future output events from a job.
-    pub fn tail_log_from_start(&self, id: &UniqueJobId) -> Result<UnboundedReceiver<OutputEvent>> {
-        let mut output = self
-            .outputs
-            .get(id)
-            .ok_or_else(|| anyhow!("job does not exist"))?
-            .lock()
-            .unwrap();
-
-        Ok(output.tail_from_start())
+        Ok(output.tail(from_start))
     }
 }
 

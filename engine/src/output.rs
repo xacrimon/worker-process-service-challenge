@@ -35,19 +35,14 @@ impl Output {
         self.log.push(event);
     }
 
-    /// Register a new event listener that will stream all future events.
-    pub fn tail(&mut self) -> UnboundedReceiver<OutputEvent> {
-        let (tx, rx) = mpsc::unbounded_channel();
-        self.senders.push(tx);
-        rx
-    }
-
-    /// Register a new event listener that will stream all past and future events.
-    pub fn tail_from_start(&mut self) -> UnboundedReceiver<OutputEvent> {
+    /// Register a new event listener that will all future events and optionally those of the past.
+    pub fn tail(&mut self, from_start: bool) -> UnboundedReceiver<OutputEvent> {
         let (tx, rx) = mpsc::unbounded_channel();
 
-        for event in &self.log {
-            tx.send(event.clone()).unwrap();
+        if from_start {
+            for event in &self.log {
+                tx.send(event.clone()).unwrap();
+            }
         }
 
         self.senders.push(tx);
@@ -62,7 +57,7 @@ mod tests {
     #[tokio::test]
     async fn publish_receive() {
         let mut output = Output::new();
-        let mut rx = output.tail();
+        let mut rx = output.tail(false);
         let event = OutputEvent::Exit(5);
         output.publish(event.clone());
         assert_eq!(rx.recv().await, Some(event));
@@ -73,7 +68,7 @@ mod tests {
         let mut output = Output::new();
         let event = OutputEvent::Exit(5);
         output.publish(event);
-        let mut rx = output.tail();
+        let mut rx = output.tail(false);
         assert_eq!(rx.try_recv().ok(), None);
     }
 
@@ -82,7 +77,7 @@ mod tests {
         let mut output = Output::new();
         let event = OutputEvent::Exit(5);
         output.publish(event.clone());
-        let mut rx = output.tail_from_start();
+        let mut rx = output.tail(true);
         assert_eq!(rx.recv().await, Some(event));
     }
 }
