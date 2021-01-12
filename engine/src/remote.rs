@@ -63,10 +63,10 @@ impl Remote {
 
     /// Spawn event processors that monitor the process for things like output and termination
     /// and publishes events based on that.
-    pub fn spawn_events_processor(&mut self, output_1: Arc<Mutex<Output>>) -> Result<()> {
+    pub fn spawn_events_processor(&mut self, output_stdout: Arc<Mutex<Output>>) -> Result<()> {
         // Create two additional references to the `Output`.
-        let output_2 = Arc::clone(&output_1);
-        let output_3 = Arc::clone(&output_1);
+        let output_stderr = Arc::clone(&output_stdout);
+        let output_kill = Arc::clone(&output_stdout);
 
         // Nab the child RAII handle from the remote. If it's taken, this method has already called.
         let mut child = self
@@ -97,8 +97,8 @@ impl Remote {
 
                 let bytes = Vec::from(&buffer[..read]);
                 let event = OutputEvent::Stdout(bytes);
-                let mut output_1_guard = output_1.lock().unwrap();
-                output_1_guard.publish(event);
+                let mut output_stdout_guard = output_stdout.lock().unwrap();
+                output_stdout_guard.publish(event);
             }
         });
 
@@ -113,8 +113,8 @@ impl Remote {
 
                 let bytes = Vec::from(&buffer[..read]);
                 let event = OutputEvent::Stderr(bytes);
-                let mut output_2_guard = output_2.lock().unwrap();
-                output_2_guard.publish(event);
+                let mut output_stderr_guard = output_stderr.lock().unwrap();
+                output_stderr_guard.publish(event);
             }
         });
 
@@ -122,8 +122,8 @@ impl Remote {
         task::spawn_blocking(move || {
             let code = child.wait().map(|s| s.code()).ok().flatten().unwrap_or(1);
             let event = OutputEvent::Exit(code);
-            let mut output_3_guard = output_3.lock().unwrap();
-            output_3_guard.publish(event);
+            let mut output_kill_guard = output_kill.lock().unwrap();
+            output_kill_guard.publish(event);
         });
 
         Ok(())
