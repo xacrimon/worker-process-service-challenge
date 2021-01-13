@@ -86,6 +86,8 @@ impl Remote {
         task::spawn(async move {
             let mut stdout_buffer = [0; READ_BUFFER_SIZE];
             let mut stderr_buffer = [0; READ_BUFFER_SIZE];
+            let mut stdout_enabled = true;
+            let mut stderr_enabled = true;
 
             'outer: loop {
                 select! {
@@ -94,35 +96,40 @@ impl Remote {
                         let event = OutputEvent::Exit(code);
                         let mut output_guard = output.lock().unwrap();
                         output_guard.publish(event);
+                        break 'outer;
                     }
 
                     _ = &mut kill_switch => {
                         let _ = child.kill();
                     }
 
-                    maybe_read = stdout.read(&mut stdout_buffer) => {
+                    maybe_read = stdout.read(&mut stdout_buffer), if stdout_enabled => {
                         if let Ok(read) = maybe_read {
                             if read != 0 {
                                 let bytes = Vec::from(&stdout_buffer[..read]);
                                 let event = OutputEvent::Stdout(bytes);
                                 let mut output_guard = output.lock().unwrap();
                                 output_guard.publish(event);
+                            } else {
+                                stdout_enabled = false;
                             }
                         } else {
-                            break 'outer;
+                            stdout_enabled = false;
                         }
                     }
 
-                    maybe_read = stderr.read(&mut stderr_buffer) => {
+                    maybe_read = stderr.read(&mut stderr_buffer), if stderr_enabled => {
                         if let Ok(read) = maybe_read {
                             if read != 0 {
                                 let bytes = Vec::from(&stderr_buffer[..read]);
                                 let event = OutputEvent::Stderr(bytes);
                                 let mut output_guard = output.lock().unwrap();
                                 output_guard.publish(event);
+                            } else {
+                                stderr_enabled = false;
                             }
                         } else {
-                            break 'outer;
+                            stderr_enabled = false;
                         }
                     }
                 }
