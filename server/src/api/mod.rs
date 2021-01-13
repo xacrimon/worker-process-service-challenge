@@ -9,6 +9,7 @@ use protocol::{
 use tokio::sync::Mutex;
 use tonic::{Request, Response, Status};
 
+/// Our service handler.
 pub struct ApiCore {
     engine: Mutex<Engine>,
 }

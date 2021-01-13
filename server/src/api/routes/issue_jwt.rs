@@ -6,6 +6,7 @@ use tonic::Status;
 /// 15 minute JWT expiration.
 const JWT_EXPIRATION: usize = 15 * 60;
 
+/// Figure out the unix timestamp 15 minutes from now.
 fn generate_exp_timestamp() -> usize {
     UNIX_EPOCH.elapsed().unwrap().as_secs() as usize + JWT_EXPIRATION
 }

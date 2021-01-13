@@ -7,6 +7,7 @@ use api::ApiCore;
 use protocol::api_server::ApiServer;
 use tonic::transport::{Server, ServerTlsConfig};
 
+// We include the certs and keys in the binary for simplicity.
 const CERT: &[u8] = include_bytes!("../../data/server.pem");
 const KEY: &[u8] = include_bytes!("../../data/server.key");
 const CLIENT_CA_CERT: &[u8] = include_bytes!("../../data/client_ca.pem");

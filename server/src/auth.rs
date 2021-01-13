@@ -3,10 +3,13 @@ use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 use tonic::{metadata::MetadataMap, Request, Status};
 
+/// Example secret. In a real setting you may want to use an asymmetric keypair for signing instead of HMAC.
 const JWT_SECRET: &[u8] = b"secret_charlie";
+
 const AUTHORIZATION_HEADER_NAME: &str = "Authorization";
 const AUTHORIZATION_TYPE: &str = "Bearer";
 
+/// The claims the JWT token must have.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
     pub exp: usize,
@@ -17,6 +20,7 @@ pub struct Claims {
     pub status: bool,
 }
 
+/// Extract the auth token from the gRPC request metadata.
 fn get_auth_token<'a>(metadata: &'a MetadataMap) -> Result<&'a str> {
     let header = metadata
         .get(AUTHORIZATION_HEADER_NAME)
@@ -39,6 +43,7 @@ fn get_auth_token<'a>(metadata: &'a MetadataMap) -> Result<&'a str> {
     Ok(token)
 }
 
+/// Extract and validate claims from a gRPC request.
 pub fn validate_claims<T>(request: &Request<T>) -> Result<Claims, Status> {
     let meta = request.metadata();
     let auth_token =
@@ -52,6 +57,7 @@ pub fn validate_claims<T>(request: &Request<T>) -> Result<Claims, Status> {
     Ok(token.claims)
 }
 
+/// Create a new JWT with a set of claims.
 pub fn issue_jwt(claims: Claims) -> Result<String> {
     let header = Header::default();
     let key = EncodingKey::from_secret(JWT_SECRET);

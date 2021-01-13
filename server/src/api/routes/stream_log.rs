@@ -7,6 +7,7 @@ use tokio::sync::Mutex;
 use tonic::Status;
 use uuid::Uuid;
 
+/// The internal type of event stream we are handing over to tonic.
 pub type EventStream = Pin<Box<dyn Stream<Item = Result<StreamLogResponse, Status>> + Send + Sync>>;
 
 pub async fn stream_log(
@@ -26,6 +27,7 @@ pub async fn stream_log(
     Ok(Box::pin(stream.map(transform)))
 }
 
+/// Transform internal output events to our gRPC protocol format.
 fn transform(event: OutputEvent) -> Result<StreamLogResponse, Status> {
     Ok(StreamLogResponse {
         response: Some(match event {

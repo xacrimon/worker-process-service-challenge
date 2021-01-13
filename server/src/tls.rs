@@ -5,6 +5,7 @@ use rustls::{
 };
 use std::io::{BufReader, Cursor};
 
+/// Load a x509 cerificate from raw PEM;
 pub fn load_pem_cert(pem: &[u8]) -> Result<Certificate> {
     let mut pem_reader = BufReader::new(Cursor::new(pem));
     let list = pemfile::certs(&mut pem_reader).map_err(|_| anyhow!("could not parse pem"))?;
@@ -13,6 +14,7 @@ pub fn load_pem_cert(pem: &[u8]) -> Result<Certificate> {
         .ok_or_else(|| anyhow!("pem did not contain a certificate"))
 }
 
+/// Load an RSA private key from a file.
 pub fn load_private_key(raw: &[u8]) -> Result<PrivateKey> {
     let mut raw_reader = BufReader::new(Cursor::new(raw));
     let list = pemfile::rsa_private_keys(&mut raw_reader)
