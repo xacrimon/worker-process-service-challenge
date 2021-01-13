@@ -49,10 +49,6 @@ message StatusRequest {
 }
 
 message StatusResponse {
-    message StatusResponseFailedToStart {
-        string error = 1;
-    }
-
     message StatusResponseRunning {}
 
     message StatusResponseTerminated {
@@ -60,9 +56,8 @@ message StatusResponse {
     }
 
     oneof response {
-        StatusResponseFailedToStart failed_to_start = 1;
-        StatusResponseRunning running = 2;
-        StatusResponseTerminated terminated = 3;
+        StatusResponseRunning running = 1;
+        StatusResponseTerminated terminated = 2;
     }
 }
 

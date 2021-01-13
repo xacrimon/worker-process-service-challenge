@@ -13,7 +13,7 @@ pub enum OutputEvent {
 /// past and new events to any listeners.
 #[derive(Debug)]
 pub struct Output {
-    log: Vec<OutputEvent>,
+    pub log: Vec<OutputEvent>,
     senders: Vec<UnboundedSender<OutputEvent>>,
 }
 
@@ -47,6 +47,10 @@ impl Output {
 
         self.senders.push(tx);
         rx
+    }
+
+    pub fn get_events(&mut self) -> Vec<OutputEvent> {
+        self.log.clone()
     }
 }
 

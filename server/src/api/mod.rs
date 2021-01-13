@@ -85,7 +85,10 @@ impl Api for ApiCore {
             return Err(Status::permission_denied("claims.status not true"));
         }
 
-        todo!()
+        let request = request.get_ref();
+        routes::status::status(&self.engine, request, &claims.username)
+            .await
+            .map(Response::new)
     }
 
     async fn issue_jwt(
