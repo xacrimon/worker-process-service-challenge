@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Result};
-use jsonwebtoken::{DecodingKey, Validation};
+use jsonwebtoken::{DecodingKey, Validation, Header, EncodingKey};
 use serde::{Deserialize, Serialize};
 use tonic::{metadata::MetadataMap, Request, Status};
 
@@ -50,4 +50,11 @@ pub fn validate_claims<T>(request: &Request<T>) -> Result<Claims, Status> {
         .map_err(|error| Status::invalid_argument(error.to_string()))?;
 
     Ok(token.claims)
+}
+
+pub fn issue_jwt(claims: Claims) -> Result<String> {
+    let header = Header::default();
+    let key = EncodingKey::from_secret(JWT_SECRET);
+    let token = jsonwebtoken::encode(&header, &claims, &key)?;
+    Ok(token)
 }
