@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Result};
-use jsonwebtoken::{DecodingKey, Validation, Header, EncodingKey};
+use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 use tonic::{metadata::MetadataMap, Request, Status};
 
@@ -9,7 +9,7 @@ const AUTHORIZATION_TYPE: &str = "Bearer";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
-    exp: usize,
+    pub exp: usize,
     pub username: String,
     pub spawn: bool,
     pub stop: bool,

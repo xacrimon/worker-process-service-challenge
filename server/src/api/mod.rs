@@ -1,3 +1,5 @@
+mod routes;
+
 use crate::auth;
 use engine::Engine;
 use protocol::{
@@ -81,6 +83,9 @@ impl Api for ApiCore {
         &self,
         request: Request<IssueJwtRequest>,
     ) -> Result<Response<IssueJwtResponse>, Status> {
-        todo!()
+        let request = request.get_ref();
+        routes::issue_jwt::issue_jwt(request)
+            .await
+            .map(Response::new)
     }
 }
