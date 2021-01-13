@@ -10,7 +10,7 @@ pub fn load_pem_cert(pem: &[u8]) -> Result<Certificate> {
     let mut pem_reader = BufReader::new(Cursor::new(pem));
     let list = pemfile::certs(&mut pem_reader).map_err(|_| anyhow!("could not parse pem"))?;
     list.get(0)
-        .map(|cert| cert.clone())
+        .cloned()
         .ok_or_else(|| anyhow!("pem did not contain a certificate"))
 }
 
@@ -19,8 +19,9 @@ pub fn load_private_key(raw: &[u8]) -> Result<PrivateKey> {
     let mut raw_reader = BufReader::new(Cursor::new(raw));
     let list = pemfile::rsa_private_keys(&mut raw_reader)
         .map_err(|_| anyhow!("could not parse raw key"))?;
+
     list.get(0)
-        .map(|cert| cert.clone())
+        .cloned()
         .ok_or_else(|| anyhow!("raw did not contain a private key"))
 }
 
