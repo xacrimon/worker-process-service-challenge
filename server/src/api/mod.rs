@@ -28,7 +28,7 @@ impl ApiCore {
 /// improper way and verifying authorization in each route to save some time here.
 #[tonic::async_trait]
 impl Api for ApiCore {
-    type StreamLogStream = UnboundedReceiver<Result<StreamLogResponse, Status>>;
+    type StreamLogStream = routes::stream_log::EventStream;
 
     async fn spawn(
         &self,
@@ -69,7 +69,10 @@ impl Api for ApiCore {
             return Err(Status::permission_denied("claims.stream_log not true"));
         }
 
-        todo!()
+        let request = request.get_ref();
+        routes::stream_log::stream_log(&self.engine, request, &claims.username)
+            .await
+            .map(Response::new)
     }
 
     async fn status(
