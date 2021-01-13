@@ -10,11 +10,11 @@ const AUTHORIZATION_TYPE: &str = "Bearer";
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
     exp: usize,
-    username: String,
-    spawn: bool,
-    stop: bool,
-    stream_log: bool,
-    status: bool,
+    pub username: String,
+    pub spawn: bool,
+    pub stop: bool,
+    pub stream_log: bool,
+    pub status: bool,
 }
 
 fn get_auth_token<'a>(metadata: &'a MetadataMap) -> Result<&'a str> {
