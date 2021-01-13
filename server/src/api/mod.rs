@@ -40,7 +40,10 @@ impl Api for ApiCore {
             return Err(Status::permission_denied("claims.spawn not true"));
         }
 
-        todo!()
+        let request = request.get_ref();
+        routes::spawn::spawn(&self.engine, request, &claims.username)
+            .await
+            .map(Response::new)
     }
 
     async fn stop(&self, request: Request<StopRequest>) -> Result<Response<StopResponse>, Status> {
@@ -50,7 +53,10 @@ impl Api for ApiCore {
             return Err(Status::permission_denied("claims.stop not true"));
         }
 
-        todo!()
+        let request = request.get_ref();
+        routes::stop::stop(&self.engine, request, &claims.username)
+            .await
+            .map(Response::new)
     }
 
     async fn stream_log(
