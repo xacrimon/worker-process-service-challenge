@@ -102,9 +102,7 @@ impl Remote {
 
                     maybe_read = stdout.read(&mut stdout_buffer) => {
                         if let Ok(read) = maybe_read {
-                            if read == 0 {
-                                break 'outer;
-                            } else {
+                            if read != 0 {
                                 let bytes = Vec::from(&stdout_buffer[..read]);
                                 let event = OutputEvent::Stdout(bytes);
                                 let mut output_guard = output.lock().unwrap();
@@ -117,9 +115,7 @@ impl Remote {
 
                     maybe_read = stderr.read(&mut stderr_buffer) => {
                         if let Ok(read) = maybe_read {
-                            if read == 0 {
-                                break 'outer;
-                            } else {
+                            if read != 0 {
                                 let bytes = Vec::from(&stderr_buffer[..read]);
                                 let event = OutputEvent::Stderr(bytes);
                                 let mut output_guard = output.lock().unwrap();
