@@ -63,7 +63,7 @@ impl Engine {
             .lock()
             .unwrap();
 
-        remote.stop();
+        remote.stop()?;
         Ok(())
     }
 

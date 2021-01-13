@@ -1,12 +1,14 @@
 use crate::output::{Output, OutputEvent};
 use anyhow::{anyhow, Result};
 use std::collections::HashMap;
-use std::{
-    io::Read,
+use std::sync::{Arc, Mutex};
+use tokio::{
+    io::AsyncReadExt,
     process::{Child, Command},
-    sync::{Arc, Mutex},
+    select,
+    sync::oneshot,
+    task,
 };
-use tokio::task;
 
 /// The buffer size used for reading from stdout and stderr.
 /// Here I've chosen it to be 1 KiB but this is pretty arbitrary.
@@ -21,11 +23,8 @@ pub struct Remote {
     /// The RAII handle to the child process.
     child: Option<Child>,
 
-    /// The operating system identifier of the child process.
-    pid: u32,
-
-    /// Whether the child process has already been stopped.
-    stopped: bool,
+    kill_switch: Option<oneshot::Sender<()>>,
+    kill_switch_rx: Option<oneshot::Receiver<()>>,
 }
 
 impl Remote {
@@ -39,34 +38,32 @@ impl Remote {
         let mut command = Command::new(program);
         command.current_dir(working_directory).args(args).envs(envs);
         let child = command.spawn()?;
-        let pid = child.id();
+        let (kill_switch, kill_switch_rx) = oneshot::channel();
 
         Ok(Self {
             child: Some(child),
-            pid,
-            stopped: false,
+            kill_switch: Some(kill_switch),
+            kill_switch_rx: Some(kill_switch_rx),
         })
     }
 
     /// Sends SIGINT to a process should it still be running. This allows it to perform a graceful exit.
-    pub fn stop(&mut self) {
-        if !self.stopped {
-            // This is a pretty safe thing to do as long as we are using a POSIX compliant and relatively
-            // sane libc implementation. That said everything in the libc crate is marked unsafe because
-            // the behaviour may differ by libc.
-            let status = unsafe { libc::kill(self.pid as i32, libc::SIGINT) };
-
-            self.stopped = true;
-            assert_eq!(status, 0);
-        }
+    pub fn stop(&mut self) -> Result<()> {
+        let kill_switch = self
+            .kill_switch
+            .take()
+            .ok_or_else(|| anyhow!("already sent stop signal"))?;
+        let _ = kill_switch.send(());
+        Ok(())
     }
 
     /// Spawn event processors that monitor the process for things like output and termination
     /// and publishes events based on that.
-    pub fn spawn_events_processor(&mut self, output_stdout: Arc<Mutex<Output>>) -> Result<()> {
-        // Create two additional references to the `Output`.
-        let output_stderr = Arc::clone(&output_stdout);
-        let output_kill = Arc::clone(&output_stdout);
+    pub fn spawn_events_processor(&mut self, output: Arc<Mutex<Output>>) -> Result<()> {
+        let mut kill_switch = self
+            .kill_switch_rx
+            .take()
+            .ok_or_else(|| anyhow!("could not grab process kill switch"))?;
 
         // Nab the child RAII handle from the remote. If it's taken, this method has already called.
         let mut child = self
@@ -86,44 +83,54 @@ impl Remote {
             .take()
             .ok_or_else(|| anyhow!("could not attach stderr"))?;
 
-        // Spawns a task that will stream events from the stdout unix pipe to the output channel.
-        task::spawn_blocking(move || {
-            let mut buffer = [0; READ_BUFFER_SIZE];
+        task::spawn(async move {
+            let mut stdout_buffer = [0; READ_BUFFER_SIZE];
+            let mut stderr_buffer = [0; READ_BUFFER_SIZE];
 
-            while let Ok(read) = stdout.read(&mut buffer) {
-                if read == 0 {
-                    break;
+            'outer: loop {
+                select! {
+                    exit_status = &mut child => {
+                        let code = exit_status.map(|s| s.code()).ok().flatten().unwrap_or(1);
+                        let event = OutputEvent::Exit(code);
+                        let mut output_guard = output.lock().unwrap();
+                        output_guard.publish(event);
+                    }
+
+                    _ = &mut kill_switch => {
+
+                    }
+
+                    maybe_read = stdout.read(&mut stdout_buffer) => {
+                        if let Ok(read) = maybe_read {
+                            if read == 0 {
+                                break 'outer;
+                            } else {
+                                let bytes = Vec::from(&stdout_buffer[..read]);
+                                let event = OutputEvent::Stdout(bytes);
+                                let mut output_guard = output.lock().unwrap();
+                                output_guard.publish(event);
+                            }
+                        } else {
+                            break 'outer;
+                        }
+                    }
+
+                    maybe_read = stderr.read(&mut stderr_buffer) => {
+                        if let Ok(read) = maybe_read {
+                            if read == 0 {
+                                break 'outer;
+                            } else {
+                                let bytes = Vec::from(&stderr_buffer[..read]);
+                                let event = OutputEvent::Stderr(bytes);
+                                let mut output_guard = output.lock().unwrap();
+                                output_guard.publish(event);
+                            }
+                        } else {
+                            break 'outer;
+                        }
+                    }
                 }
-
-                let bytes = Vec::from(&buffer[..read]);
-                let event = OutputEvent::Stdout(bytes);
-                let mut output_stdout_guard = output_stdout.lock().unwrap();
-                output_stdout_guard.publish(event);
             }
-        });
-
-        // Spawns a task that will stream events from the stderr unix pipe to the output channel.
-        task::spawn_blocking(move || {
-            let mut buffer = [0; READ_BUFFER_SIZE];
-
-            while let Ok(read) = stderr.read(&mut buffer) {
-                if read == 0 {
-                    break;
-                }
-
-                let bytes = Vec::from(&buffer[..read]);
-                let event = OutputEvent::Stderr(bytes);
-                let mut output_stderr_guard = output_stderr.lock().unwrap();
-                output_stderr_guard.publish(event);
-            }
-        });
-
-        // Spawns a task that will monitor the child process for termination.
-        task::spawn_blocking(move || {
-            let code = child.wait().map(|s| s.code()).ok().flatten().unwrap_or(1);
-            let event = OutputEvent::Exit(code);
-            let mut output_kill_guard = output_kill.lock().unwrap();
-            output_kill_guard.publish(event);
         });
 
         Ok(())
