@@ -23,7 +23,7 @@ fn get_auth_token<'a>(metadata: &'a MetadataMap) -> Result<&'a str> {
         .ok_or_else(|| anyhow!("no authorization token provided"))?;
 
     let string_header = header.to_str()?;
-    let mut splits = string_header.split(" ");
+    let mut splits = string_header.split(' ');
     let given_auth_type = splits
         .next()
         .ok_or_else(|| anyhow!("malformed authorization header"))?;

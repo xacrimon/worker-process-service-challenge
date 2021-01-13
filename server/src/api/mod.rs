@@ -4,9 +4,8 @@ use crate::auth;
 use engine::Engine;
 use protocol::{
     api_server::Api, IssueJwtRequest, IssueJwtResponse, SpawnRequest, SpawnResponse, StatusRequest,
-    StatusResponse, StopRequest, StopResponse, StreamLogRequest, StreamLogResponse,
+    StatusResponse, StopRequest, StopResponse, StreamLogRequest,
 };
-use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::Mutex;
 use tonic::{Request, Response, Status};
 

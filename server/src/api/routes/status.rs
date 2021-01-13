@@ -1,6 +1,5 @@
 use anyhow::Result;
 use engine::{Engine, OutputEvent, UniqueJobId};
-use futures::StreamExt;
 use protocol::{status_response, StatusRequest, StatusResponse};
 use tokio::sync::Mutex;
 use tonic::Status;

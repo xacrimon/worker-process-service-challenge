@@ -3,7 +3,7 @@ use engine::{Engine, OutputEvent, UniqueJobId};
 use futures::{Stream, StreamExt};
 use protocol::{stream_log_response, StreamLogRequest, StreamLogResponse};
 use std::pin::Pin;
-use tokio::sync::{mpsc::UnboundedReceiver, Mutex};
+use tokio::sync::Mutex;
 use tonic::Status;
 use uuid::Uuid;
 
