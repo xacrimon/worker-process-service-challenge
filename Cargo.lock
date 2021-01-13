@@ -982,6 +982,7 @@ dependencies = [
  "futures",
  "jsonwebtoken",
  "protocol",
+ "rustls",
  "serde",
  "tokio",
  "tonic",
