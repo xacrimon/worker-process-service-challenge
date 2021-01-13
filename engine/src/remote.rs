@@ -97,7 +97,7 @@ impl Remote {
                     }
 
                     _ = &mut kill_switch => {
-
+                        let _ = child.kill();
                     }
 
                     maybe_read = stdout.read(&mut stdout_buffer) => {
