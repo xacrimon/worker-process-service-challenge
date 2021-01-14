@@ -3,22 +3,19 @@ use rustls::{
     ciphersuite::TLS13_AES_256_GCM_SHA384, internal::pemfile, AllowAnyAuthenticatedClient,
     Certificate, PrivateKey, RootCertStore, ServerConfig,
 };
-use std::io::{BufReader, Cursor};
 
 /// Load a x509 cerificate from raw PEM;
-pub fn load_pem_cert(pem: &[u8]) -> Result<Certificate> {
-    let mut pem_reader = BufReader::new(Cursor::new(pem));
-    let list = pemfile::certs(&mut pem_reader).map_err(|_| anyhow!("could not parse pem"))?;
+pub fn load_pem_cert(mut pem: &[u8]) -> Result<Certificate> {
+    let list = pemfile::certs(&mut pem).map_err(|_| anyhow!("could not parse pem"))?;
     list.get(0)
         .cloned()
         .ok_or_else(|| anyhow!("pem did not contain a certificate"))
 }
 
 /// Load an RSA private key from a file.
-pub fn load_private_key(raw: &[u8]) -> Result<PrivateKey> {
-    let mut raw_reader = BufReader::new(Cursor::new(raw));
-    let list = pemfile::rsa_private_keys(&mut raw_reader)
-        .map_err(|_| anyhow!("could not parse raw key"))?;
+pub fn load_private_key(mut raw: &[u8]) -> Result<PrivateKey> {
+    let list =
+        pemfile::rsa_private_keys(&mut raw).map_err(|_| anyhow!("could not parse raw key"))?;
 
     list.get(0)
         .cloned()
@@ -28,12 +25,11 @@ pub fn load_private_key(raw: &[u8]) -> Result<PrivateKey> {
 pub fn tls_server_config(
     server_cert: Certificate,
     server_key: PrivateKey,
-    client_ca: &[u8],
+    mut client_ca: &[u8],
 ) -> Result<ServerConfig> {
-    let mut client_ca_reader = BufReader::new(Cursor::new(client_ca));
     let mut cert_store = RootCertStore::empty();
     cert_store
-        .add_pem_file(&mut client_ca_reader)
+        .add_pem_file(&mut client_ca)
         .map_err(|_| anyhow!("failed to parse client ca certificate"))?;
 
     let authenticator = AllowAnyAuthenticatedClient::new(cert_store);
