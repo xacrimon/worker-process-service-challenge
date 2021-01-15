@@ -48,16 +48,16 @@ impl FromStr for StringMap {
 #[structopt(name = "client")]
 pub struct Opts {
     #[structopt(short, long)]
-    endpoint: String,
+    pub endpoint: String,
 
     #[structopt(short, long)]
-    domain: String,
+    pub domain: String,
 
     #[structopt(short, long)]
-    username: String,
+    pub username: String,
 
     #[structopt(flatten)]
-    command: CommandOpts,
+    pub command: CommandOpts,
 }
 
 #[derive(Debug, StructOpt)]

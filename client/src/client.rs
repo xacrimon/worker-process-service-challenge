@@ -20,6 +20,18 @@ pub struct Claims {
     pub status: bool,
 }
 
+impl Claims {
+    pub fn full_permission(username: String) -> Self {
+        Self {
+            username,
+            spawn: true,
+            stop: true,
+            stream_log: true,
+            status: true,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub enum JobStatus {
     Running,
