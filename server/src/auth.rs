@@ -6,7 +6,7 @@ use tonic::{metadata::MetadataMap, Request, Status};
 /// Example secret. In a real setting you may want to use an asymmetric keypair for signing instead of HMAC.
 const JWT_SECRET: &[u8] = b"secret_charlie";
 
-const AUTHORIZATION_HEADER_NAME: &str = "Authorization";
+const AUTHORIZATION_HEADER_NAME: &str = "authorization";
 const AUTHORIZATION_TYPE: &str = "Bearer";
 
 /// The claims the JWT token must have.

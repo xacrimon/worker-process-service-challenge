@@ -35,5 +35,6 @@ pub fn tls_server_config(
     let authenticator = AllowAnyAuthenticatedClient::new(cert_store);
     let mut config = ServerConfig::with_ciphersuites(authenticator, &[&TLS13_AES_256_GCM_SHA384]);
     config.set_single_cert(vec![server_cert], server_key)?;
+    config.set_protocols(&[Vec::from(&b"h2"[..])]);
     Ok(config)
 }

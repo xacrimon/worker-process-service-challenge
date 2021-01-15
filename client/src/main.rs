@@ -10,9 +10,9 @@ use structopt::StructOpt;
 use tonic::transport::{Certificate, Identity};
 use uuid::Uuid;
 
-const CLIENT_CERT: &[u8] = include_bytes!("../../data/client.crt");
-const CLIENT_KEY: &[u8] = include_bytes!("../../data/client.key");
-const SERVER_CA_CERT: &[u8] = include_bytes!("../../data/ca.crt");
+const CLIENT_CERT: &[u8] = include_bytes!("../../data/client1.pem");
+const CLIENT_KEY: &[u8] = include_bytes!("../../data/client1.key");
+const SERVER_CA_CERT: &[u8] = include_bytes!("../../data/ca.pem");
 
 #[tokio::main]
 async fn main() -> Result<()> {

@@ -66,8 +66,8 @@ impl UnauthorizedClient {
     ) -> Result<Self> {
         let tls = ClientTlsConfig::new()
             .domain_name(domain)
-            .identity(identity)
-            .ca_certificate(server_ca);
+            .ca_certificate(server_ca)
+            .identity(identity);
 
         let channel = Endpoint::from_shared(endpoint.to_string())?
             .tls_config(tls)?
@@ -112,8 +112,8 @@ impl Client {
     /// Embed the JWT in the request metadata, authorizing us as the client.
     fn authorize_request<T>(&self, message: T) -> Request<T> {
         let mut request = Request::new(message);
-        let header_value = MetadataValue::from_str(&format!("Bearer: {}", self.token.0)).unwrap();
-        request.metadata_mut().insert("Authorization", header_value);
+        let header_value = MetadataValue::from_str(&format!("Bearer {}", self.token.0)).unwrap();
+        request.metadata_mut().insert("authorization", header_value);
         request
     }
 
