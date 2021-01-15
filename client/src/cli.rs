@@ -5,7 +5,7 @@ use std::str::FromStr;
 use structopt::StructOpt;
 use uuid::Uuid;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct StringList(pub Vec<String>);
 
 impl FromStr for StringList {
@@ -16,7 +16,7 @@ impl FromStr for StringList {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct StringMap(pub HashMap<String, String>);
 
 impl FromStr for StringMap {
@@ -34,6 +34,7 @@ impl FromStr for StringMap {
         }
 
         s.split(',')
+            .filter(|s| s.len() != 0)
             .map(split_pair)
             .try_fold(HashMap::new(), |mut map, pair| {
                 let (k, v) = pair?;
@@ -66,13 +67,13 @@ pub enum CommandOpts {
         #[structopt(short, long)]
         program_path: String,
 
-        #[structopt(short, long)]
+        #[structopt(short, long, default_value)]
         working_directory: String,
 
-        #[structopt(short, long)]
+        #[structopt(short, long, default_value = "")]
         args: StringList,
 
-        #[structopt(short, long)]
+        #[structopt(short, long, default_value = "")]
         envs: StringMap,
     },
 

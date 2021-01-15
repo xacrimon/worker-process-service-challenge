@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Result};
 use protocol::{
-    api_client::ApiClient, status_response, IssueJwtRequest, IssueJwtResponse, SpawnRequest,
-    StatusRequest, StopRequest, StreamLogRequest, StreamLogResponse,
+    api_client::ApiClient, status_response, IssueJwtRequest, SpawnRequest, StatusRequest,
+    StopRequest, StreamLogRequest, StreamLogResponse,
 };
 use std::collections::HashMap;
 use tonic::{
