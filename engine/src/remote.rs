@@ -1,6 +1,7 @@
 use crate::output::{Output, OutputEvent};
 use anyhow::{anyhow, Result};
 use std::collections::HashMap;
+use std::process::Stdio;
 use std::sync::{Arc, Mutex};
 use tokio::{
     io::AsyncReadExt,
@@ -36,7 +37,13 @@ impl Remote {
         envs: &HashMap<String, String>,
     ) -> Result<Self> {
         let mut command = Command::new(program);
-        command.current_dir(working_directory).args(args).envs(envs);
+        command
+            .current_dir(working_directory)
+            .args(args)
+            .envs(envs)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped());
+
         let child = command.spawn()?;
         let (kill_switch, kill_switch_rx) = oneshot::channel();
 
