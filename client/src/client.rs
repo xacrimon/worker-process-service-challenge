@@ -34,7 +34,7 @@ pub struct UnauthorizedClient {
 }
 
 impl UnauthorizedClient {
-    pub async fn new(
+    pub async fn connect(
         endpoint: &str,
         domain: &str,
         identity: Identity,
