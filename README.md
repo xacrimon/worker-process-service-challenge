@@ -3,6 +3,8 @@
 This is a prototype implementation of a service that allows running arbitrary processes and a client
 that can interface with that service remotely over gRPC.
 
+The design document can be found [here](https://docs.google.com/document/d/1y4gG4gp-Tg695jdfXQGGm_pQd4VMT1-ZNO06QolkzmQ/edit?usp=sharing).
+
 ## Coding Style
 
 This project roughly follows the somewhat old [Rust Style Guidelines](https://doc.rust-lang.org/1.0.0/style/README.html) by default
