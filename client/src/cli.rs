@@ -34,14 +34,14 @@ impl FromStr for StringMap {
         }
 
         s.split(',')
-            .filter(|s| s.len() != 0)
+            .filter(|s| !s.is_empty())
             .map(split_pair)
             .try_fold(HashMap::new(), |mut map, pair| {
                 let (k, v) = pair?;
                 map.insert(k, v);
                 Ok(map)
             })
-            .map(|map| StringMap(map))
+            .map(StringMap)
     }
 }
 

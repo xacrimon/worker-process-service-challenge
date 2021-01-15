@@ -71,7 +71,7 @@ async fn stop(client: &mut Client, uuid: Uuid) -> Result<()> {
 async fn stream_log(client: &mut Client, uuid: Uuid, past_events: bool) -> Result<()> {
     let mut stream = client.stream_log(uuid, past_events).await?;
 
-    for event in stream.next().await {
+    while let Some(event) = stream.next().await {
         println!("event: {:?}", event);
     }
 
