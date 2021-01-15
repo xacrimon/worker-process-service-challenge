@@ -11,6 +11,7 @@ use tonic::{
 };
 use uuid::Uuid;
 
+/// The permissions that the requested JWT should have.
 #[derive(Debug, Clone)]
 pub struct Claims {
     pub username: String,
@@ -41,6 +42,17 @@ pub enum JobStatus {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Jwt(String);
 
+/// A client that has yet to authorize itself and acquire a JWT.
+/// In a production system you'd really just skip this whole step
+/// since you'd retrieve your JWT from some other authorization authority
+/// service that's mutually trusted. Since we don't have that here,
+/// we're essentially pretending that we also are one but in reality
+/// it's just an unprotected dummy gRPC call that allows us to create fake JWTs.
+///
+/// You'd probably also want to cache these tokens in some form of persistent storage
+/// but in order for that to work correctly you need a full setup that supports refresh tokens
+/// in order to save time, I've skipped implementing JWT refresh tokens which means they're mostly
+/// useless to cache locally.
 pub struct UnauthorizedClient {
     remote: ApiClient<Channel>,
 }
@@ -97,6 +109,7 @@ impl Client {
         Self { remote, token }
     }
 
+    /// Embed the JWT in the request metadata, authorizing us as the client.
     fn authorize_request<T>(&self, message: T) -> Request<T> {
         let mut request = Request::new(message);
         let header_value = MetadataValue::from_str(&format!("Bearer: {}", self.token.0)).unwrap();
