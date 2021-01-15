@@ -67,6 +67,8 @@ impl Remote {
     /// Spawn event processors that monitor the process for things like output and termination
     /// and publishes events based on that.
     pub fn spawn_events_processor(&mut self, output: Arc<Mutex<Output>>) -> Result<()> {
+        let output_stream = Arc::clone(&output);
+
         let mut kill_switch = self
             .kill_switch_rx
             .take()
@@ -91,14 +93,9 @@ impl Remote {
             .ok_or_else(|| anyhow!("could not attach stderr"))?;
 
         task::spawn(async move {
-            let mut stdout_buffer = [0; READ_BUFFER_SIZE];
-            let mut stderr_buffer = [0; READ_BUFFER_SIZE];
-            let mut stdout_enabled = true;
-            let mut stderr_enabled = true;
-
             'outer: loop {
                 select! {
-                    exit_status = &mut child => {
+                    exit_status = child.wait() => {
                         let code = exit_status.map(|s| s.code()).ok().flatten().unwrap_or(1);
                         let event = OutputEvent::Exit(code);
                         let mut output_guard = output.lock().unwrap();
@@ -109,34 +106,39 @@ impl Remote {
                     _ = &mut kill_switch => {
                         let _ = child.kill();
                     }
+                }
+            }
+        });
 
+        task::spawn(async move {
+            let mut stdout_buffer = [0; READ_BUFFER_SIZE];
+            let mut stderr_buffer = [0; READ_BUFFER_SIZE];
+            let mut stdout_enabled = true;
+            let mut stderr_enabled = true;
+
+            while stdout_enabled || stderr_enabled {
+                select! {
                     maybe_read = stdout.read(&mut stdout_buffer), if stdout_enabled => {
-                        if let Ok(read) = maybe_read {
-                            if read != 0 {
+                        match maybe_read {
+                            Ok(read) if read != 0 => {
                                 let bytes = Vec::from(&stdout_buffer[..read]);
                                 let event = OutputEvent::Stdout(bytes);
-                                let mut output_guard = output.lock().unwrap();
+                                let mut output_guard = output_stream.lock().unwrap();
                                 output_guard.publish(event);
-                            } else {
-                                stdout_enabled = false;
                             }
-                        } else {
-                            stdout_enabled = false;
+                            _ => stdout_enabled = false,
                         }
                     }
 
                     maybe_read = stderr.read(&mut stderr_buffer), if stderr_enabled => {
-                        if let Ok(read) = maybe_read {
-                            if read != 0 {
-                                let bytes = Vec::from(&stderr_buffer[..read]);
-                                let event = OutputEvent::Stderr(bytes);
-                                let mut output_guard = output.lock().unwrap();
+                        match maybe_read {
+                            Ok(read) if read != 0 => {
+                                let bytes = Vec::from(&stdout_buffer[..read]);
+                                let event = OutputEvent::Stdout(bytes);
+                                let mut output_guard = output_stream.lock().unwrap();
                                 output_guard.publish(event);
-                            } else {
-                                stderr_enabled = false;
                             }
-                        } else {
-                            stderr_enabled = false;
+                            _ => stderr_enabled = false,
                         }
                     }
                 }
