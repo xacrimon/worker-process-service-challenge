@@ -1,6 +1,7 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use protocol::{
-    api_client::ApiClient, IssueJwtRequest, IssueJwtResponse, SpawnRequest, StreamLogResponse,
+    api_client::ApiClient, status_response, IssueJwtRequest, IssueJwtResponse, SpawnRequest,
+    StatusRequest, StopRequest, StreamLogRequest, StreamLogResponse,
 };
 use std::collections::HashMap;
 use tonic::{
@@ -91,25 +92,66 @@ impl Client {
         request
     }
 
-    pub fn spawn(
+    pub async fn spawn(
         &mut self,
         program_path: String,
         working_directory: String,
         args: Vec<String>,
         envs: HashMap<String, String>,
     ) -> Result<Uuid> {
-        todo!()
+        let request = self.authorize_request(SpawnRequest {
+            program: program_path,
+            working_directory,
+            args,
+            envs,
+        });
+
+        let response = self.remote.spawn(request).await?.into_inner();
+        let uuid = Uuid::from_slice(&response.uuid)?;
+        Ok(uuid)
     }
 
-    pub fn stop(&mut self, job: Uuid) -> Result<()> {
-        todo!()
+    pub async fn stop(&mut self, job: Uuid) -> Result<()> {
+        let request = self.authorize_request(StopRequest {
+            uuid: job.as_bytes()[..].into(),
+        });
+
+        self.remote.stop(request).await?;
+        Ok(())
     }
 
-    pub fn stream_log(&mut self, job: Uuid, from_beginning: bool) -> Streaming<StreamLogResponse> {
-        todo!()
+    pub async fn stream_log(
+        &mut self,
+        job: Uuid,
+        from_beginning: bool,
+    ) -> Result<Streaming<StreamLogResponse>> {
+        let request = self.authorize_request(StreamLogRequest {
+            uuid: job.as_bytes()[..].into(),
+            from_beginning,
+        });
+
+        let response = self.remote.stream_log(request).await?.into_inner();
+        Ok(response)
     }
 
-    pub fn status(&mut self, job: Uuid) -> Result<JobStatus> {
-        todo!()
+    pub async fn status(&mut self, job: Uuid) -> Result<JobStatus> {
+        let request = self.authorize_request(StatusRequest {
+            uuid: job.as_bytes()[..].into(),
+        });
+
+        let response = self
+            .remote
+            .status(request)
+            .await?
+            .into_inner()
+            .response
+            .ok_or_else(|| anyhow!("no status response received"))?;
+
+        Ok(match response {
+            status_response::Response::Running(_) => JobStatus::Running,
+            status_response::Response::Terminated(terminated) => {
+                JobStatus::Terminated(terminated.code)
+            }
+        })
     }
 }
