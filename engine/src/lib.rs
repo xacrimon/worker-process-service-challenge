@@ -82,6 +82,17 @@ impl Engine {
 
         Ok(output.tail(from_start))
     }
+
+    pub fn get_past_events(&self, id: &UniqueJobId) -> Result<Vec<OutputEvent>> {
+        let mut output = self
+            .outputs
+            .get(id)
+            .ok_or_else(|| anyhow!("job does not exist"))?
+            .lock()
+            .unwrap();
+
+        Ok(output.get_events())
+    }
 }
 
 /// Represents a job associated with a username.

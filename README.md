@@ -24,3 +24,7 @@ For simplicity this prototype just sticks with usernames.
 
 In a production grade product, errors would ideally be handled by handwriting enums and serializing that to error
 codes over gRPC. Due to time and code size I've opted to simply use human-readable text errors instead.
+
+## Certificates and Keys
+
+For the purpose of demonstration, I've included all certificates and keys for the client, server and their CAs as hardcoded files in the `data` folder.
