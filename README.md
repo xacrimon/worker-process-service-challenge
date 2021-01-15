@@ -31,7 +31,7 @@ For the purpose of demonstration, I've included all certificates and keys for th
 
 ## Usage
 
-First, an instance of the server itself needs to be running. This is as simply as
+First, an instance of the server itself needs to be running. This is as simple as
 compiling the server binary and running it without any arguments. If everything works
 as intended you should see something similar to this in your console. Please note that all child processes
 are run with the user and permissions as the user this service is started under.
@@ -44,6 +44,8 @@ You're then ready to connect to it with the client.
 The client has a few base parameters that will need to be met for all subcommands
 and then each subcommand has it's own set of required parameters. The CLI itself
 has fairly extensive documentation on how it all works but some examples will be provided here.
+
+The CLI comes with a root command and a number of subcommands. When in doubt, simply run the command with `--help`, also works for all subcommands.
 
 ### Spawning a job
 
