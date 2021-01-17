@@ -40,7 +40,7 @@ pub enum JobStatus {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Jwt(String);
+pub struct Jwt(pub String);
 
 /// A client that has yet to authorize itself and acquire a JWT.
 /// In a production system you'd really just skip this whole step
@@ -93,9 +93,13 @@ impl UnauthorizedClient {
         Ok(jwt)
     }
 
+    pub(crate) fn with_token(self, token: Jwt) -> Result<Client> {
+        Ok(Client::new(self.remote, token))
+    }
+
     pub async fn authorize(mut self, claims: Claims) -> Result<Client> {
         let token = self.issue_jwt(claims).await?;
-        Ok(Client::new(self.remote, token))
+        self.with_token(token)
     }
 }
 
