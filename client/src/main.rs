@@ -2,7 +2,7 @@ mod cli;
 mod client;
 
 use anyhow::Result;
-use cli::{CommandOpts, Opts, StreamType};
+use cli::{CommandOpts, Opts, StreamStatus, StreamType};
 use client::{Claims, Client, JobStatus, UnauthorizedClient};
 use futures::StreamExt;
 use std::collections::HashMap;
@@ -88,7 +88,10 @@ async fn stream_log(
 
     // Continue to accept events and write them out using the writer.
     while let Some(Ok(event)) = stream.next().await {
-        writer.write(event)?;
+        if let StreamStatus::Terminated(code) = writer.write(event)? {
+            println!("terminated with exit code {}", code);
+            break;
+        }
     }
 
     // We've processed all events the server has to send.

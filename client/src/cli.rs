@@ -126,9 +126,15 @@ impl StreamType {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum StreamStatus {
+    ExpectingMore,
+    Terminated(i32),
+}
+
 pub trait StreamWriter {
     fn start(&mut self) -> Result<()>;
-    fn write(&mut self, event: StreamLogResponse) -> Result<()>;
+    fn write(&mut self, event: StreamLogResponse) -> Result<StreamStatus>;
 }
 
 /// Event writer that writes all events in their raw form.
@@ -140,9 +146,13 @@ impl StreamWriter for RawStreamWriter {
         Ok(())
     }
 
-    fn write(&mut self, event: StreamLogResponse) -> Result<()> {
-        println!("{:?}", event);
-        Ok(())
+    fn write(&mut self, event: StreamLogResponse) -> Result<StreamStatus> {
+        let response = event
+            .response
+            .ok_or_else(|| anyhow!("incomplete event received"))?;
+
+        println!("{:?}", response);
+        Ok(status_from_response(&response))
     }
 }
 
@@ -155,17 +165,18 @@ impl StreamWriter for StdoutStreamWriter {
         Ok(())
     }
 
-    fn write(&mut self, event: StreamLogResponse) -> Result<()> {
+    fn write(&mut self, event: StreamLogResponse) -> Result<StreamStatus> {
         let response = event
             .response
             .ok_or_else(|| anyhow!("incomplete event received"))?;
 
+        let status = status_from_response(&response);
         if let stream_log_response::Response::Stdout(data) = response {
             let text = str::from_utf8(&data.output)?;
             print!("{}", text);
         }
 
-        Ok(())
+        Ok(status)
     }
 }
 
@@ -178,16 +189,25 @@ impl StreamWriter for StderrStreamWriter {
         Ok(())
     }
 
-    fn write(&mut self, event: StreamLogResponse) -> Result<()> {
+    fn write(&mut self, event: StreamLogResponse) -> Result<StreamStatus> {
         let response = event
             .response
             .ok_or_else(|| anyhow!("incomplete event received"))?;
 
+        let status = status_from_response(&response);
         if let stream_log_response::Response::Stderr(data) = response {
             let text = str::from_utf8(&data.output)?;
             print!("{}", text);
         }
 
-        Ok(())
+        Ok(status)
+    }
+}
+
+fn status_from_response(response: &stream_log_response::Response) -> StreamStatus {
+    if let stream_log_response::Response::Exit(event) = response {
+        StreamStatus::Terminated(event.code)
+    } else {
+        StreamStatus::ExpectingMore
     }
 }
