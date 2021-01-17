@@ -70,7 +70,7 @@ Some examples are provided below.
 ### Stream all past and future output events from a job
 
 ```
-./client --domain localhost --endpoint https://localhost:7005 --username acrimon stream_log --stream-type <stream-type> --past-events --uuid <uuid>
+./client --domain localhost --endpoint https://localhost:7005 --username acrimon stream-log --stream-type <stream-type> --past-events --uuid <uuid>
 ```
 
 Valid values for `stream-type` are
