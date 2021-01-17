@@ -67,7 +67,7 @@ pub enum CommandOpts {
         #[structopt(short, long)]
         program_path: String,
 
-        #[structopt(short, long, default_value)]
+        #[structopt(short, long, default_value = ".")]
         working_directory: String,
 
         #[structopt(short, long, default_value = "")]
