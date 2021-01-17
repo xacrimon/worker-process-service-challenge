@@ -1,3 +1,4 @@
+use super::{DOMAIN, ENDPOINT, USERNAME};
 use crate::client::{Claims, Jwt, UnauthorizedClient};
 use crate::{CLIENT_CERT, CLIENT_KEY, SERVER_CA_CERT};
 use anyhow::Result;
@@ -5,10 +6,6 @@ use serial_test::serial;
 use server::server;
 use std::collections::HashMap;
 use tonic::transport::{Certificate, Identity};
-
-const USERNAME: &str = "teleport-user";
-const ENDPOINT: &str = "https://localhost:7005";
-const DOMAIN: &str = "localhost";
 
 #[tokio::test]
 #[serial]
