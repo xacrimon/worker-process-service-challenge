@@ -1,7 +1,10 @@
 use anyhow::{anyhow, Error, Result};
+use protocol::{stream_log_response, StreamLogResponse};
 use std::collections::HashMap;
 use std::convert::Infallible;
+use std::str;
 use std::str::FromStr;
+use structopt::clap::arg_enum;
 use structopt::StructOpt;
 use uuid::Uuid;
 
@@ -83,6 +86,9 @@ pub enum CommandOpts {
     },
 
     StreamLog {
+        #[structopt(short, long, case_insensitive = true)]
+        stream_type: StreamType,
+
         #[structopt(short, long)]
         uuid: Uuid,
 
@@ -94,4 +100,86 @@ pub enum CommandOpts {
         #[structopt(short, long)]
         uuid: Uuid,
     },
+}
+
+arg_enum! {
+    #[derive(Debug, PartialEq, Eq)]
+    pub enum StreamType {
+        Raw,
+        Stdout,
+        Stderr,
+    }
+}
+
+impl StreamType {
+    pub fn writer(&self) -> Box<dyn StreamWriter + Send + 'static> {
+        match self {
+            Self::Raw => Box::new(RawStreamWriter),
+            Self::Stdout => Box::new(StdoutStreamWriter),
+            Self::Stderr => Box::new(StderrStreamWriter),
+        }
+    }
+}
+
+pub trait StreamWriter {
+    fn start(&mut self) -> Result<()>;
+    fn write(&mut self, event: StreamLogResponse) -> Result<()>;
+}
+
+struct RawStreamWriter;
+
+impl StreamWriter for RawStreamWriter {
+    fn start(&mut self) -> Result<()> {
+        println!("raw log:");
+        Ok(())
+    }
+
+    fn write(&mut self, event: StreamLogResponse) -> Result<()> {
+        println!("{:?}", event);
+        Ok(())
+    }
+}
+
+struct StdoutStreamWriter;
+
+impl StreamWriter for StdoutStreamWriter {
+    fn start(&mut self) -> Result<()> {
+        println!("stdout log:");
+        Ok(())
+    }
+
+    fn write(&mut self, event: StreamLogResponse) -> Result<()> {
+        let response = event
+            .response
+            .ok_or_else(|| anyhow!("incomplete event received"))?;
+
+        if let stream_log_response::Response::Stdout(data) = response {
+            let text = str::from_utf8(&data.output)?;
+            println!("> {}", text);
+        }
+
+        Ok(())
+    }
+}
+
+struct StderrStreamWriter;
+
+impl StreamWriter for StderrStreamWriter {
+    fn start(&mut self) -> Result<()> {
+        println!("stderr log:");
+        Ok(())
+    }
+
+    fn write(&mut self, event: StreamLogResponse) -> Result<()> {
+        let response = event
+            .response
+            .ok_or_else(|| anyhow!("incomplete event received"))?;
+
+        if let stream_log_response::Response::Stderr(data) = response {
+            let text = str::from_utf8(&data.output)?;
+            println!("> {}", text);
+        }
+
+        Ok(())
+    }
 }

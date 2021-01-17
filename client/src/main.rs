@@ -2,7 +2,7 @@ mod cli;
 mod client;
 
 use anyhow::Result;
-use cli::{CommandOpts, Opts};
+use cli::{CommandOpts, Opts, StreamType};
 use client::{Claims, Client, JobStatus, UnauthorizedClient};
 use futures::StreamExt;
 use std::collections::HashMap;
@@ -39,9 +39,11 @@ async fn main() -> Result<()> {
             envs,
         } => spawn(&mut client, program_path, working_directory, args.0, envs.0).await?,
         CommandOpts::Stop { uuid } => stop(&mut client, uuid).await?,
-        CommandOpts::StreamLog { uuid, past_events } => {
-            stream_log(&mut client, uuid, past_events).await?
-        }
+        CommandOpts::StreamLog {
+            uuid,
+            past_events,
+            stream_type,
+        } => stream_log(&mut client, uuid, past_events, stream_type).await?,
         CommandOpts::Status { uuid } => status(&mut client, uuid).await?,
     }
 
@@ -68,11 +70,18 @@ async fn stop(client: &mut Client, uuid: Uuid) -> Result<()> {
     Ok(())
 }
 
-async fn stream_log(client: &mut Client, uuid: Uuid, past_events: bool) -> Result<()> {
+async fn stream_log(
+    client: &mut Client,
+    uuid: Uuid,
+    past_events: bool,
+    stream_type: StreamType,
+) -> Result<()> {
     let mut stream = client.stream_log(uuid, past_events).await?;
+    let mut writer = stream_type.writer();
+    writer.start()?;
 
-    while let Some(event) = stream.next().await {
-        println!("event: {:?}", event);
+    while let Some(Ok(event)) = stream.next().await {
+        writer.write(event)?;
     }
 
     Ok(())
