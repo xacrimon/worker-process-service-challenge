@@ -1,4 +1,4 @@
-use crate::auth::{self, Claims};
+use crate::server::auth::{self, Claims};
 use protocol::{IssueJwtRequest, IssueJwtResponse};
 use std::time::UNIX_EPOCH;
 use tonic::Status;
