@@ -20,7 +20,7 @@ async fn success() {
         client
             .spawn(
                 "/usr/bin/echo".into(),
-                "/sys".into(),
+                ".".into(),
                 vec!["hi pal".into()],
                 HashMap::new(),
             )
@@ -51,7 +51,7 @@ async fn invalid_jwt_signature() {
         client
             .spawn(
                 "/usr/bin/echo".into(),
-                "/sys".into(),
+                ".".into(),
                 vec!["hi pal".into()],
                 HashMap::new(),
             )
@@ -89,7 +89,7 @@ async fn missing_privileges() {
         client
             .spawn(
                 "/usr/bin/echo".into(),
-                "/sys".into(),
+                ".".into(),
                 vec!["hi pal".into()],
                 HashMap::new(),
             )
