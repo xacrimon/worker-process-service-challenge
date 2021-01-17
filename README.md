@@ -44,19 +44,36 @@ serving gRPC endpoint at 0.0.0.0:7005
 
 You're then ready to connect to it with the client.
 The client has a few base parameters that will need to be met for all subcommands
-and then each subcommand has it's own set of required parameters. The CLI itself
-has fairly extensive documentation on how it all works but some examples will be provided here.
+and then each subcommand has it's own set of required parameters. The CLI itself has some decent documentation
+accessible via the `--help` parameter which may follow the main command or any subcommand.
 
-The CLI comes with a root command and a number of subcommands. When in doubt, simply run the command with `--help`, also works for all subcommands.
+Some examples are provided below.
 
 ### Spawning a job
 
 ```
-./client -d localhost -e https://localhost:7005 -u acrimon spawn -p /usr/bin/echo -a hi -e TESTENV=ENVVALUE -w /sys
+./client --domain localhost --endpoint https://localhost:7005 --username acrimon spawn --program-path /usr/bin/echo --args hi,man --envs TESTENV=ENVVALUE --working-directory /sys
 ```
 
 ### Stopping a job
 
 ```
-./client -d localhost -e https://localhost:7005 -u acrimon stop -u <uuid>
+./client --domain localhost --endpoint https://localhost:7005 --username acrimon stop --uuid <uuid>
 ```
+
+### Fetch the status for a job
+
+```
+./client --domain localhost --endpoint https://localhost:7005 --username acrimon status --uuid <uuid>
+```
+
+### Stream all past and future output events from a job
+
+```
+./client --domain localhost --endpoint https://localhost:7005 --username acrimon stream_log --stream-type <stream-type> --past-events --uuid <uuid>
+```
+
+Valid values for `stream-type` are
+- `raw`
+- `stdout`
+- `stderr`
