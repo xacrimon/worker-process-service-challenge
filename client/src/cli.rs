@@ -8,6 +8,7 @@ use structopt::clap::arg_enum;
 use structopt::StructOpt;
 use uuid::Uuid;
 
+/// A newtype around a vec of strings to allow structopt to parse it.
 #[derive(Debug, Default)]
 pub struct StringList(pub Vec<String>);
 
@@ -19,6 +20,7 @@ impl FromStr for StringList {
     }
 }
 
+/// A newtype around a map of strings to strings to allow structopt to parse it.
 #[derive(Debug, Default)]
 pub struct StringMap(pub HashMap<String, String>);
 
@@ -48,6 +50,7 @@ impl FromStr for StringMap {
     }
 }
 
+/// The base CLI options.
 #[derive(Debug, StructOpt)]
 #[structopt(name = "client")]
 pub struct Opts {
@@ -64,6 +67,7 @@ pub struct Opts {
     pub command: CommandOpts,
 }
 
+/// This represents all subcommands.
 #[derive(Debug, StructOpt)]
 pub enum CommandOpts {
     Spawn {
@@ -103,6 +107,7 @@ pub enum CommandOpts {
 }
 
 arg_enum! {
+    /// Possible options for ways to display the incoming event stream.
     #[derive(Debug, PartialEq, Eq)]
     pub enum StreamType {
         Raw,
@@ -126,6 +131,7 @@ pub trait StreamWriter {
     fn write(&mut self, event: StreamLogResponse) -> Result<()>;
 }
 
+/// Event writer that writes all events in their raw form.
 struct RawStreamWriter;
 
 impl StreamWriter for RawStreamWriter {
@@ -140,6 +146,7 @@ impl StreamWriter for RawStreamWriter {
     }
 }
 
+/// Event writer that filters out stdout events and displays them as text.
 struct StdoutStreamWriter;
 
 impl StreamWriter for StdoutStreamWriter {
@@ -155,13 +162,14 @@ impl StreamWriter for StdoutStreamWriter {
 
         if let stream_log_response::Response::Stdout(data) = response {
             let text = str::from_utf8(&data.output)?;
-            println!("> {}", text);
+            print!("{}", text);
         }
 
         Ok(())
     }
 }
 
+/// Event writer that filters out stderr events and displays them as text.
 struct StderrStreamWriter;
 
 impl StreamWriter for StderrStreamWriter {
@@ -177,7 +185,7 @@ impl StreamWriter for StderrStreamWriter {
 
         if let stream_log_response::Response::Stderr(data) = response {
             let text = str::from_utf8(&data.output)?;
-            println!("> {}", text);
+            print!("{}", text);
         }
 
         Ok(())

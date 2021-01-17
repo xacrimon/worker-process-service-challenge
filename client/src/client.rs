@@ -99,6 +99,7 @@ impl UnauthorizedClient {
     }
 }
 
+/// An authorized client with an active JWT.
 pub struct Client {
     remote: ApiClient<Channel>,
     token: Jwt,

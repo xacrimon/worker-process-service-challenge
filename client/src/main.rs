@@ -21,6 +21,7 @@ async fn main() -> Result<()> {
     let server_ca_certificate = Certificate::from_pem(SERVER_CA_CERT);
     let claims = Claims::full_permission(opts.username);
 
+    // Set up the high-level gRPC client.
     let mut client = UnauthorizedClient::connect(
         &opts.endpoint,
         &opts.domain,
@@ -31,6 +32,7 @@ async fn main() -> Result<()> {
     .authorize(claims)
     .await?;
 
+    // Calls the appropriate handler method based on the subcommand.
     match opts.command {
         CommandOpts::Spawn {
             program_path,
@@ -60,6 +62,7 @@ async fn spawn(
     let uuid = client
         .spawn(program_path, working_directory, args, envs)
         .await?;
+
     println!("spawned job with id {}", uuid);
     Ok(())
 }
@@ -76,14 +79,19 @@ async fn stream_log(
     past_events: bool,
     stream_type: StreamType,
 ) -> Result<()> {
+    // Grab the stream of raw events coming from the server.
     let mut stream = client.stream_log(uuid, past_events).await?;
+
+    // Creates the appropriate event formatter based on the stream_type parameter.
     let mut writer = stream_type.writer();
     writer.start()?;
 
+    // Continue to accept events and write them out using the writer.
     while let Some(Ok(event)) = stream.next().await {
         writer.write(event)?;
     }
 
+    // We've processed all events the server has to send.
     Ok(())
 }
 
