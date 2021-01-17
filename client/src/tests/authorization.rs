@@ -20,7 +20,7 @@ async fn success() {
         client
             .spawn(
                 "/usr/bin/echo".into(),
-                "/home".into(),
+                "/sys".into(),
                 vec!["hi pal".into()],
                 HashMap::new(),
             )
@@ -51,7 +51,7 @@ async fn invalid_jwt_signature() {
         client
             .spawn(
                 "/usr/bin/echo".into(),
-                "/home".into(),
+                "/sys".into(),
                 vec!["hi pal".into()],
                 HashMap::new(),
             )
@@ -74,6 +74,7 @@ async fn missing_privileges() {
 
         let mut unauthorized_client =
             UnauthorizedClient::connect(ENDPOINT, DOMAIN, identity, server_ca_cert).await?;
+
         let claims = Claims {
             username: USERNAME.into(),
             spawn: false,
@@ -88,7 +89,7 @@ async fn missing_privileges() {
         client
             .spawn(
                 "/usr/bin/echo".into(),
-                "/home".into(),
+                "/sys".into(),
                 vec!["hi pal".into()],
                 HashMap::new(),
             )
