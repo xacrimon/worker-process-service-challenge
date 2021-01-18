@@ -16,9 +16,9 @@ async fn success() {
 
         client
             .spawn(
-                "/usr/bin/echo".into(),
+                "/bin/bash".into(),
                 ".".into(),
-                vec!["hi pal".into()],
+                vec!["-c".into(), "echo hi".into()],
                 HashMap::new(),
             )
             .await?;
@@ -47,9 +47,9 @@ async fn invalid_jwt_signature() {
 
         client
             .spawn(
-                "/usr/bin/echo".into(),
+                "/bin/bash".into(),
                 ".".into(),
-                vec!["hi pal".into()],
+                vec!["-c".into(), "echo hi".into()],
                 HashMap::new(),
             )
             .await?;
@@ -85,9 +85,9 @@ async fn missing_privileges() {
 
         client
             .spawn(
-                "/usr/bin/echo".into(),
+                "/bin/bash".into(),
                 ".".into(),
-                vec!["hi pal".into()],
+                vec!["-c".into(), "echo hi".into()],
                 HashMap::new(),
             )
             .await?;
