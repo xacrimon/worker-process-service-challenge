@@ -31,6 +31,12 @@ codes over gRPC. Due to time and code size I've opted to simply use human-readab
 
 For the purpose of demonstration, I've included all certificates and keys for the client, server and their CAs as hardcoded files in the `data` folder.
 
+## Tests
+
+A handful of tests are available and are all implemented in the client package. To run them,
+simply enter the root repository directory and execute `cargo test`. The test code itself is located
+in the `client/src/tests` directory. Current tests cover TLS, authorization and basic usage.
+
 ## Usage
 
 First, an instance of the server itself needs to be running. This is as simple as
