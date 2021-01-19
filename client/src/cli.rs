@@ -58,9 +58,6 @@ pub struct Opts {
     pub endpoint: String,
 
     #[structopt(short, long)]
-    pub domain: String,
-
-    #[structopt(short, long)]
     pub username: String,
 
     #[structopt(flatten)]

@@ -1,4 +1,4 @@
-use super::{DOMAIN, ENDPOINT, USERNAME};
+use super::{ENDPOINT, USERNAME};
 use crate::client::{Claims, UnauthorizedClient};
 use crate::{CLIENT_CERT, CLIENT_KEY};
 use anyhow::Result;
@@ -19,7 +19,7 @@ async fn wrong_server_cert_issuer() {
         let server_ca_cert = Certificate::from_pem(CLIENT_CA_CERT);
         let claims = Claims::full_permission(USERNAME.into());
 
-        let mut client = UnauthorizedClient::connect(ENDPOINT, DOMAIN, identity, server_ca_cert)
+        let mut client = UnauthorizedClient::connect(ENDPOINT, identity, server_ca_cert)
             .await?
             .authorize(claims)
             .await?;

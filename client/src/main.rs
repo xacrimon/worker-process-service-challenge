@@ -20,7 +20,7 @@ const SERVER_CA_CERT: &[u8] = include_bytes!("../../data/ca.pem");
 #[tokio::main]
 async fn main() -> Result<()> {
     let opts = Opts::from_args();
-    let mut client = init_client(opts.username, &opts.endpoint, &opts.domain).await?;
+    let mut client = init_client(opts.username, &opts.endpoint).await?;
 
     // Calls the appropriate handler method based on the subcommand.
     match opts.command {
@@ -42,13 +42,13 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-async fn init_client(username: String, endpoint: &str, domain: &str) -> Result<Client> {
+async fn init_client(username: String, endpoint: &str) -> Result<Client> {
     let identity = Identity::from_pem(CLIENT_CERT, CLIENT_KEY);
     let server_ca_certificate = Certificate::from_pem(SERVER_CA_CERT);
     let claims = Claims::full_permission(username);
 
     // Set up the high-level gRPC client.
-    let client = UnauthorizedClient::connect(endpoint, domain, identity, server_ca_certificate)
+    let client = UnauthorizedClient::connect(endpoint, identity, server_ca_certificate)
         .await?
         .authorize(claims)
         .await?;

@@ -58,25 +58,25 @@ Some examples are provided below.
 ### Spawning a job
 
 ```
-./client --domain localhost --endpoint https://localhost:7005 --username acrimon spawn --program-path /usr/bin/echo --args hi,man --envs TESTENV=ENVVALUE --working-directory /sys
+./client --endpoint https://localhost:7005 --username acrimon spawn --program-path /usr/bin/echo --args hi,man --envs TESTENV=ENVVALUE --working-directory /sys
 ```
 
 ### Stopping a job
 
 ```
-./client --domain localhost --endpoint https://localhost:7005 --username acrimon stop --uuid <uuid>
+./client --endpoint https://localhost:7005 --username acrimon stop --uuid <uuid>
 ```
 
 ### Fetch the status for a job
 
 ```
-./client --domain localhost --endpoint https://localhost:7005 --username acrimon status --uuid <uuid>
+./client --endpoint https://localhost:7005 --username acrimon status --uuid <uuid>
 ```
 
 ### Stream all past and future output events from a job
 
 ```
-./client --domain localhost --endpoint https://localhost:7005 --username acrimon stream-log --stream-type <stream-type> --past-events --uuid <uuid>
+./client --endpoint https://localhost:7005 --username acrimon stream-log --stream-type <stream-type> --past-events --uuid <uuid>
 ```
 
 Valid values for `stream-type` are

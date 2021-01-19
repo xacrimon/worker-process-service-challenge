@@ -7,7 +7,7 @@ use api::ApiCore;
 use protocol::api_server::ApiServer;
 use tonic::transport::{Server, ServerTlsConfig};
 
-const ADDR: &str = "0.0.0.0:7005";
+const ADDR: &str = "127.0.0.1:7005";
 
 // We include the certs and keys in the binary for simplicity.
 const CERT: &[u8] = include_bytes!("../../../data/server.pem");

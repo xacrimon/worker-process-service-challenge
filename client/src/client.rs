@@ -60,12 +60,10 @@ pub struct UnauthorizedClient {
 impl UnauthorizedClient {
     pub async fn connect(
         endpoint: &str,
-        domain: &str,
         identity: Identity,
         server_ca: Certificate,
     ) -> Result<Self> {
         let tls = ClientTlsConfig::new()
-            .domain_name(domain)
             .ca_certificate(server_ca)
             .identity(identity);
 

@@ -1,4 +1,4 @@
-use super::{DOMAIN, ENDPOINT, USERNAME};
+use super::{ENDPOINT, USERNAME};
 use anyhow::{anyhow, Result};
 use futures::StreamExt;
 use protocol::stream_log_response;
@@ -11,7 +11,7 @@ use std::collections::HashMap;
 async fn spawn_capture_verify_stdout() {
     async fn test() -> Result<()> {
         tokio::spawn(server::serve());
-        let mut client = crate::init_client(USERNAME.into(), ENDPOINT, DOMAIN).await?;
+        let mut client = crate::init_client(USERNAME.into(), ENDPOINT).await?;
 
         let uuid = client
             .spawn(

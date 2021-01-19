@@ -1,4 +1,4 @@
-use super::{DOMAIN, ENDPOINT, USERNAME};
+use super::{ENDPOINT, USERNAME};
 use crate::client::{Claims, Jwt, UnauthorizedClient};
 use crate::{CLIENT_CERT, CLIENT_KEY, SERVER_CA_CERT};
 use anyhow::Result;
@@ -12,7 +12,7 @@ use tonic::transport::{Certificate, Identity};
 async fn success() {
     async fn test() -> Result<()> {
         tokio::spawn(server::serve());
-        let mut client = crate::init_client(USERNAME.into(), ENDPOINT, DOMAIN).await?;
+        let mut client = crate::init_client(USERNAME.into(), ENDPOINT).await?;
 
         client
             .spawn(
@@ -41,7 +41,7 @@ async fn invalid_jwt_signature() {
         let identity = Identity::from_pem(CLIENT_CERT, CLIENT_KEY);
         let server_ca_cert = Certificate::from_pem(SERVER_CA_CERT);
 
-        let mut client = UnauthorizedClient::connect(ENDPOINT, DOMAIN, identity, server_ca_cert)
+        let mut client = UnauthorizedClient::connect(ENDPOINT, identity, server_ca_cert)
             .await?
             .with_token(token)?;
 
@@ -70,7 +70,7 @@ async fn missing_privileges() {
         let server_ca_cert = Certificate::from_pem(SERVER_CA_CERT);
 
         let mut unauthorized_client =
-            UnauthorizedClient::connect(ENDPOINT, DOMAIN, identity, server_ca_cert).await?;
+            UnauthorizedClient::connect(ENDPOINT, identity, server_ca_cert).await?;
 
         let claims = Claims {
             username: USERNAME.into(),
