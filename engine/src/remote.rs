@@ -133,8 +133,8 @@ impl Remote {
                     maybe_read = stderr.read(&mut stderr_buffer), if stderr_enabled => {
                         match maybe_read {
                             Ok(read) if read != 0 => {
-                                let bytes = Vec::from(&stdout_buffer[..read]);
-                                let event = OutputEvent::Stdout(bytes);
+                                let bytes = Vec::from(&stderr_buffer[..read]);
+                                let event = OutputEvent::Stderr(bytes);
                                 let mut output_guard = output_stream.lock().unwrap();
                                 output_guard.publish(event);
                             }
