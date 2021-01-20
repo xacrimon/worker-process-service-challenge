@@ -1,14 +1,21 @@
 use anyhow::Result;
 use engine::{Engine, OutputEvent, UniqueJobId};
-use futures::{Stream, StreamExt};
+use futures::{stream, Stream, StreamExt};
 use protocol::{stream_log_response, StreamLogRequest, StreamLogResponse};
 use std::pin::Pin;
+use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::Mutex;
 use tonic::Status;
 use uuid::Uuid;
 
 /// The internal type of event stream we are handing over to tonic.
 pub type EventStream = Pin<Box<dyn Stream<Item = Result<StreamLogResponse, Status>> + Send + Sync>>;
+
+fn channel_to_stream<T: Send + Sync + 'static>(
+    mut channel: UnboundedReceiver<T>,
+) -> Pin<Box<dyn Stream<Item = T> + Send + Sync>> {
+    Box::pin(stream::poll_fn(move |cx| channel.poll_recv(cx)))
+}
 
 pub async fn stream_log(
     engine: &Mutex<Engine>,
@@ -20,9 +27,11 @@ pub async fn stream_log(
 
     let id = UniqueJobId::new(username.into(), uuid);
     let engine = engine.lock().await;
-    let stream = engine
-        .tail_log(&id, request.from_beginning)
-        .map_err(|error| Status::internal(error.to_string()))?;
+    let stream = channel_to_stream(
+        engine
+            .tail_log(&id, request.from_beginning)
+            .map_err(|error| Status::internal(error.to_string()))?,
+    );
 
     Ok(Box::pin(stream.map(transform)))
 }

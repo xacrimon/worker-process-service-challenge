@@ -1,0 +1,18 @@
+[package]
+name = "client"
+version = "0.1.0"
+authors = ["Acrimon <joel.wejdenstal@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+tonic = { version = "0.4.0", features = ["tls"] }
+protocol = { path = "../protocol" }
+uuid = "0.8.2"
+anyhow = "1.0.38"
+structopt = "0.3.21"
+tokio = { version = "1.0.2", features = ["full"] }
+futures = "0.3.12"
+
+[dev-dependencies]
+server = { path = "../server" }
+serial_test = "0.5.1"

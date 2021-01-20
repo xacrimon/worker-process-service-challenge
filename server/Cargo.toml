@@ -6,12 +6,12 @@ edition = "2018"
 
 [dependencies]
 engine = { path = "../engine" }
-tonic = { version = "0.3.1", features = ["tls"] }
+tonic = { version = "0.4.0", features = ["tls"] }
 protocol = { path = "../protocol" }
-futures = "0.3.8"
-tokio = { version = "0.2", features = ["full"] }
-uuid = { version = "0.8.1", features = ["v4"] }
-anyhow = "1.0.37"
+futures = "0.3.12"
+tokio = { version = "1.0.2", features = ["full"] }
+uuid = { version = "0.8.2", features = ["v4"] }
+anyhow = "1.0.38"
 jsonwebtoken = "7.2.0"
-serde = {version = "1.0", features = ["derive"] }
-rustls = "0.18.0"
+serde = { version = "1.0.119", features = ["derive"] }
+rustls = "0.19.0"

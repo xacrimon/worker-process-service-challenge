@@ -5,6 +5,6 @@ authors = ["Acrimon <joel.wejdenstal@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-tokio = { version = "0.2", features = ["full"] }
-uuid = { version = "0.8.1", features = ["v4"] }
-anyhow = "1.0.37"
+tokio = { version = "1.0.2", features = ["full"] }
+uuid = { version = "0.8.2", features = ["v4"] }
+anyhow = "1.0.38"

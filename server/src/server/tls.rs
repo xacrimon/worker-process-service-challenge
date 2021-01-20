@@ -15,7 +15,7 @@ pub fn load_pem_cert(mut pem: &[u8]) -> Result<Certificate> {
 /// Load an RSA private key from a file.
 pub fn load_private_key(mut raw: &[u8]) -> Result<PrivateKey> {
     let list =
-        pemfile::rsa_private_keys(&mut raw).map_err(|_| anyhow!("could not parse raw key"))?;
+        pemfile::pkcs8_private_keys(&mut raw).map_err(|_| anyhow!("could not parse raw key"))?;
 
     list.get(0)
         .cloned()
@@ -35,5 +35,6 @@ pub fn tls_server_config(
     let authenticator = AllowAnyAuthenticatedClient::new(cert_store);
     let mut config = ServerConfig::with_ciphersuites(authenticator, &[&TLS13_AES_256_GCM_SHA384]);
     config.set_single_cert(vec![server_cert], server_key)?;
+    config.set_protocols(&[Vec::from(&b"h2"[..])]);
     Ok(config)
 }

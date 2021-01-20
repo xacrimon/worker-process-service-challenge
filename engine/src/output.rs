@@ -68,15 +68,6 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn no_publish_receive() {
-        let mut output = Output::new();
-        let event = OutputEvent::Exit(5);
-        output.publish(event);
-        let mut rx = output.tail(false);
-        assert_eq!(rx.try_recv().ok(), None);
-    }
-
-    #[tokio::test]
     async fn publish_receive_past() {
         let mut output = Output::new();
         let event = OutputEvent::Exit(5);

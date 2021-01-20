@@ -1,6 +1,6 @@
 mod routes;
 
-use crate::auth;
+use crate::server::auth;
 use engine::Engine;
 use protocol::{
     api_server::Api, IssueJwtRequest, IssueJwtResponse, SpawnRequest, SpawnResponse, StatusRequest,
